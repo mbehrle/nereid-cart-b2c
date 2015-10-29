@@ -16,6 +16,9 @@ from trytond.model import fields
 from trytond.pyson import Bool, Eval
 from nereid import request, cache, jsonify, abort, current_user, route
 from nereid.helpers import key_from_list
+from nereid.contrib.locale import make_lazy_gettext
+
+_ = make_lazy_gettext('nereid_cart_b2c')
 
 __all__ = ['Product']
 __metaclass__ = PoolMeta
@@ -148,15 +151,16 @@ class Product:
         the message to show.
         """
         if self.can_buy_from_eshop():
-            status, message = 'in_stock', 'In stock'
+            status, message = 'in_stock', str(_('In stock'))
         else:
-            status, message = 'out_of_stock', 'Out of stock'
+            status, message = 'out_of_stock', str(_('Out of stock'))
 
         quantity = self.get_availability().get('quantity')
 
         if status == 'in_stock' and self.display_available_quantity and \
                 quantity <= self.start_displaying_available_quantity:
-            message = '%s %s left' % (quantity, self.default_uom.name)
+            message = '%s %s %s' % (quantity, self.default_uom.name,
+                                    str(_('left')))
 
         return status, message
 
