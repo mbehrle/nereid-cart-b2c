@@ -4,8 +4,6 @@
 
     Cart test Case
 
-    :copyright: (c) 2010-2013 by Openlabs Technologies & Consulting (P) Ltd.
-    :license: GPLv3, see LICENSE for more details
 '''
 import unittest
 from decimal import Decimal
@@ -498,14 +496,15 @@ class TestCart(BaseTestCase):
             app = self.get_app()
 
             # Make product1 non-salable
-            self.assertTrue(self.product1.template.salable)
-            self.template1.salable = False
-            self.template1.save()
+            self.assertTrue(self.product1.salable)
+            self.product1.template.salable = False
+            self.product1.template.save()
 
             with app.test_client() as c:
                 self.login(c, 'email@example.com', 'password')
 
                 # You are adding a non salable product to cart
+                self.assertFalse(self.product1.salable)
                 rv = c.post(
                     '/cart/add',
                     data={

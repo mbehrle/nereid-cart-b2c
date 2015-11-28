@@ -343,7 +343,7 @@ class Cart(ModelSQL):
                 flash(message)
                 return redirect(url_for('nereid.cart.view_cart'))
 
-            if not Product(form.product.data).template.salable:
+            if not Product(form.product.data).salable:
                 message = _("This product is not for sale")
                 if request.is_xhr:
                     return jsonify(message=unicode(message)), 400
