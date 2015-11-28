@@ -20,11 +20,8 @@ class SaleChannel:
     __name__ = 'sale.channel'
 
     @classmethod
-    def get_source(cls):
-        """
-        Override the get_source method to add 'Webshop' as a source in channel
-        """
-        sources = super(SaleChannel, cls).get_source()
-        sources.append(('webshop', 'Webshop'))
-
-        return sources
+    def __setup__(cls):
+        super(SaleChannel, cls).__setup__()
+        source = ('webshop', 'Webshop')
+        if source not in cls.source.selection:
+            cls.source.selection.append(source)
