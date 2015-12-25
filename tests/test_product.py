@@ -264,7 +264,7 @@ class BaseTestCase(NereidTestCase):
         Creates the static file for testing
         """
         folder, = self.StaticFolder.create([{
-            'folder_name': folder_name,
+            'name': folder_name,
             'description': 'Test Folder'
         }])
 
