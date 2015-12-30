@@ -4,7 +4,7 @@ msgstr "Content-Type: text/plain; charset=utf-8\n"
 
 msgctxt "error:product.product:"
 msgid "This quantity should be always be positive"
-msgstr "Diese Anzahl sollte immer positiv sein"
+msgstr "Diese Anzahl sollte immer positiv sein."
 
 msgctxt "field:nereid.cart,create_date:"
 msgid "Create Date"
@@ -92,7 +92,7 @@ msgstr "Warenkorbauftrag"
 
 msgctxt "field:sale.sale,nereid_user:"
 msgid "Nereid User"
-msgstr "Nereid Benutzer"
+msgstr "Website Benutzer"
 
 msgctxt "field:sale.sale,website:"
 msgid "Website"
@@ -136,7 +136,7 @@ msgstr ""
 
 msgctxt "nereid:cart.py:346"
 msgid "This product is not for sale"
-msgstr "Dieser Artikel steht nicht zum Verkauf"
+msgstr "Dieser Artikel steht nicht zum Verkauf."
 
 msgctxt "nereid:cart.py:363"
 msgid "The product has been added to your cart"
@@ -170,17 +170,21 @@ msgctxt "nereid:product.py:163"
 msgid "left"
 msgstr "vorrätig"
 
-msgctxt "nereid:sale.py:175"
+msgctxt "nereid:sale.py:147"
 msgid "The unit price of product %s increased from %s%d to %s%d."
-msgstr "Der Einzelpreis von %s ist von %s%d auf %s%d gestiegen."
+msgstr "Der Einzelpreis von \"%s\" ist von %s%d auf %s%d gestiegen."
 
-msgctxt "nereid:sale.py:180"
+msgctxt "nereid:sale.py:152"
 msgid "The unit price of product %s dropped from %s%d to %s%d."
-msgstr "Der Einzelpreis von %s ist von %s%d auf %s%d gefallen."
+msgstr "Der Einzelpreis von \"%s\" ist von %s%d auf %s%d gefallen."
 
-msgctxt "nereid:sale.py:260"
+msgctxt "nereid:sale.py:232"
 msgid "This product is no longer available"
-msgstr "Dieser Artikel ist nicht mehr erhältlich"
+msgstr "Dieser Artikel ist nicht mehr verfügbar."
+
+msgctxt "selection:sale.channel,source:"
+msgid "Webshop"
+msgstr "Webshop"
 
 msgctxt "view:product.product:"
 msgid "Inventory Details"
