@@ -170,15 +170,15 @@ msgctxt "nereid:product.py:163"
 msgid "left"
 msgstr "vorrätig"
 
-msgctxt "nereid:sale.py:147"
+msgctxt "nereid:sale.py:146"
 msgid "The unit price of product %s increased from %s%d to %s%d."
 msgstr "Der Einzelpreis von \"%s\" ist von %s%d auf %s%d gestiegen."
 
-msgctxt "nereid:sale.py:152"
+msgctxt "nereid:sale.py:151"
 msgid "The unit price of product %s dropped from %s%d to %s%d."
 msgstr "Der Einzelpreis von \"%s\" ist von %s%d auf %s%d gefallen."
 
-msgctxt "nereid:sale.py:232"
+msgctxt "nereid:sale.py:231"
 msgid "This product is no longer available"
 msgstr "Dieser Artikel ist nicht mehr verfügbar."
 
