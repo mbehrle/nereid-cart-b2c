@@ -146,6 +146,14 @@ msgctxt "nereid:cart.py:365"
 msgid "Your cart has been updated with the product"
 msgstr "Ihr Warenkorb wurde aktualisiert"
 
+msgctxt "nereid:cart.py:397"
+msgid "Looks like the item is already deleted."
+msgstr "Der Artikel scheint bereits gelöscht worden zu sein."
+
+msgctxt "nereid:cart.py:400"
+msgid "The order item has been successfully removed."
+msgstr "Der Artikel wurde erfolgreich entfernt."
+
 msgctxt "nereid:forms.py:15"
 msgid "This field is required"
 msgstr "In diesem Felds ist eine Eingabe erforderlich"
