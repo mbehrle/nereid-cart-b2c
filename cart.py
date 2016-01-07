@@ -394,15 +394,15 @@ class Cart(ModelSQL):
                 ('sale', '=', cart.sale.id),
             ])
         except ValueError:
-            message = 'Looks like the item is already deleted.'
+            message = _('Looks like the item is already deleted.')
         else:
             SaleLine.delete([sale_line])
-            message = 'The order item has been successfully removed.'
+            message = _('The order item has been successfully removed.')
 
-        flash(_(message))
+        flash(message)
 
         if request.is_xhr:
-            return jsonify(message=message)
+            return jsonify(message=unicode(message))
 
         return redirect(url_for('nereid.cart.view_cart'))
 
