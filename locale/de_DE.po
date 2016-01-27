@@ -92,7 +92,7 @@ msgstr "Warenkorbauftrag"
 
 msgctxt "field:sale.sale,nereid_user:"
 msgid "Nereid User"
-msgstr "Website Benutzer"
+msgstr "Websitebenutzer"
 
 msgctxt "field:sale.sale,website:"
 msgid "Website"
