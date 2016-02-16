@@ -10,6 +10,8 @@
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
+from nereid.helpers import slugify
+from trytond.wizard import StateTransition
 from trytond.transaction import Transaction
 from trytond.pool import PoolMeta, Pool
 from trytond.model import fields
@@ -20,7 +22,10 @@ from nereid.contrib.locale import make_lazy_gettext
 
 _ = make_lazy_gettext('nereid_cart_b2c')
 
-__all__ = ['Product']
+__all__ = [
+    'Product', 'AddProductListingStart', 'AddProductListing',
+    'ProductChannelListing',
+]
 __metaclass__ = PoolMeta
 
 
@@ -74,6 +79,70 @@ class Product:
                 'This quantity should be always be positive'
             ),
         })
+
+        # Change displayed_on_eshop to function field
+        cls.displayed_on_eshop = fields.Function(
+            fields.Boolean('Displayed on E-Shop?'),
+            'get_displayed_on_eshop', searcher="search_displayed_on_eshop"
+        )
+
+        cls.uri = fields.Function(
+            fields.Char('URI'), 'get_uri', searcher='search_uri'
+        )
+
+    @classmethod
+    def get_displayed_on_eshop(cls, products, name):
+        Listing = Pool().get('product.product.channel_listing')
+
+        res = {product.id: False for product in products}
+        listings = Listing.search([
+            ('channel.source', '=', 'webshop'),
+            ('state', '=', 'active'),
+            ('channel', '=', Transaction().context.get('current_channel')),
+            ('product', 'in', res.keys())
+        ])
+
+        for listing in listings:
+            res[listing.product.id] = True
+        return res
+
+    @classmethod
+    def search_displayed_on_eshop(cls, name, clause):
+        Listing = Pool().get('product.product.channel_listing')
+
+        listings = Listing.search([
+            ('channel.source', '=', 'webshop'),
+            ('state', '=', 'active'),
+            ('channel', '=', Transaction().context.get('current_channel')),
+        ])
+
+        return [('id', 'in', map(lambda l: l.product.id, listings))]
+
+    @classmethod
+    def get_uri(cls, products, name):
+        Listing = Pool().get('product.product.channel_listing')
+
+        res = {product.id: None for product in products}
+        listings = Listing.search([
+            ('channel.source', '=', 'webshop'),
+            ('channel', '=', Transaction().context.get('current_channel')),
+            ('product', 'in', res.keys())
+        ])
+        for listing in listings:
+            res[listing.product.id] = listing.uri
+        return res
+
+    @classmethod
+    def search_uri(cls, name, clause):
+        Listing = Pool().get('product.product.channel_listing')
+
+        listings = Listing.search([
+            ('channel.source', '=', 'webshop'),
+            ('channel', '=', Transaction().context.get('current_channel')),
+            ('uri', ) + tuple(clause[1:])
+        ])
+
+        return [('id', 'in', map(lambda l: l.product.id, listings))]
 
     @classmethod
     def validate(cls, records):
@@ -287,3 +356,68 @@ class Product:
             return abort(404)
 
         return jsonify(product.get_availability())
+
+
+class ProductChannelListing:
+    "Product Sale Channel Listing"
+    __name__ = 'product.product.channel_listing'
+
+    uri = fields.Char(
+        'URI', select=True, states={
+            'required': Eval('channel_source') == 'webshop',
+            'invisible': Eval('channel_source') != 'webshop',
+        }, depends=['channel_source']
+    )
+
+    @fields.depends('product', 'channel', 'uri')
+    def on_change_with_uri(self):
+        """
+        If the URI is empty, slugify template name into URI
+        """
+        if self.uri:
+            return self.uri
+
+        if self.channel and self.channel.source == 'webshop' and self.product:
+            return slugify(self.product.code)
+
+
+class AddProductListingStart:
+    __name__ = 'product.listing.add.start'
+
+    uri = fields.Char(
+        'URI', select=True, states={
+            'required': Eval('channel_source') == 'webshop',
+            'invisible': Eval('channel_source') != 'webshop',
+        }, depends=['channel_source']
+    )
+
+    @fields.depends('product', 'channel', 'uri')
+    def on_change_with_uri(self):
+        """
+        If the URI is empty, slugify template name into URI
+        """
+        if self.uri:
+            return self.uri
+
+        if self.channel and self.channel.source == 'webshop' and self.product:
+            return slugify(self.product.code)
+
+    @classmethod
+    def __setup__(cls):
+        super(AddProductListingStart, cls).__setup__()
+        cls.add_source('webshop')
+
+
+class AddProductListing:
+    __name__ = 'product.listing.add'
+
+    start_webshop = StateTransition()
+
+    def transition_start_webshop(self):
+        Listing = Pool().get('product.product.channel_listing')
+        Listing.create([{
+            'product': self.start.product.id,
+            'channel': self.start.channel.id,
+            'uri': self.start.uri,
+        }])
+        return 'end'

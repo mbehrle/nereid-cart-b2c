@@ -1,12 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
-'''
-
-    Test product features
-
-    :copyright: (c) 2010-2014 by Openlabs Technologies & Consulting (P) LTD
-    :license: GPLv3, see LICENSE for more details
-'''
 import json
 import unittest
 import datetime
@@ -85,8 +78,12 @@ class BaseTestCase(NereidTestCase):
             values['sale_uom'], = Uom.search([('name', '=', uom)], limit=1)
             values['products'] = [
                 ('create', [{
-                    'uri': uri,
-                    'displayed_on_eshop': True
+                    'channel_listings': [
+                        ('create', [{
+                            'channel': self.webshop_channel,
+                            'uri': uri,
+                        }])
+                    ]
                 }])
             ]
         return ProductTemplate.create(vlist)
@@ -388,6 +385,8 @@ class BaseTestCase(NereidTestCase):
                 'company': self.company.id,
             }])
 
+        self.webshop_channel = self.channel
+
         self.User.set_preferences({'current_channel': self.channel})
 
         self.User.write(
@@ -609,12 +608,21 @@ class TestProduct(BaseTestCase):
                 'media': [('create', [{
                     'static_file': file1.id,
                 }])],
+                'products': [
+                    ('create', [{
+                        'channel_listings': [
+                            ('create', [{
+                                'channel': self.webshop_channel,
+                                'uri': 'uri',
+                            }])
+                        ]
+
+                    }])
+                ]
+
             }])
 
             product, = product_template.products
-            product.displayed_on_eshop = True
-            product.uri = 'uri'
-            product.save()
 
             product_media = Media(**{
                 'static_file': file2.id,
@@ -663,7 +671,7 @@ class TestProduct(BaseTestCase):
                 self.assertTrue(lines[0]['product']['image'] is not None)
                 self.assertEqual(
                     lines[0]['url'],
-                    product.get_absolute_url(_external=True)
+                    self.Product(product.id).get_absolute_url(_external=True)
                 )
                 self.assertEquals(
                     lines[0]['display_name'], product.name
@@ -744,6 +752,74 @@ class TestProduct(BaseTestCase):
                 self.assertTrue(rv.location.endswith('/cart'))
                 self.assertEqual(rv.status_code, 302)
                 self.assertEqual(SaleLine.search([], count=True), 1)
+
+    def test_0070_test_displayed_on_eshop(self):
+        """
+        Test displayed on eshop for product
+        """
+        Product = POOL.get('product.product')
+
+        with Transaction().start(DB_NAME, USER, CONTEXT):
+            self.setup_defaults()
+
+            # Product 1 with webshop listing
+            product1, = Product.create([{
+                'template': self.template1.id,
+                'channel_listings': [
+                    ('create', [{
+                        'channel': self.webshop_channel,
+                        'uri': 'Prod1',
+                    }])
+                ]
+            }])
+
+            # Product 2 without listing
+            product2, = Product.create([{
+                'template': self.template1.id,
+            }])
+
+            with Transaction().set_context(
+                    current_channel=self.webshop_channel.id
+            ):
+                self.assertTrue(product1.displayed_on_eshop)
+                self.assertFalse(product2.displayed_on_eshop)
+
+    def test_0075_test_add_listing_wizard(self):
+        """
+        Test wizard to add webshop listing to channel
+        """
+        Product = POOL.get('product.product')
+        AddProductListing = POOL.get('product.listing.add', type='wizard')
+        ListingStart = POOL.get('product.listing.add.start')
+
+        with Transaction().start(DB_NAME, USER, CONTEXT):
+            self.setup_defaults()
+
+            product, = Product.create([{
+                'template': self.template1.id,
+                'code': 'Test Code',
+            }])
+
+            self.assertFalse(product.channel_listings)
+
+            session_id, _, _ = AddProductListing.create()
+
+            add_listing = AddProductListing(session_id)
+
+            add_listing.start.product = product.id
+            add_listing.start.channel = self.webshop_channel
+            add_listing.start.uri = ListingStart(
+                product=product.id, channel=self.webshop_channel.id, uri=None
+            ).on_change_with_uri()
+
+            add_listing.transition_start_webshop()
+
+            self.assertTrue(product.channel_listings)
+            self.assertEqual(len(product.channel_listings), 1)
+
+            listing, = product.channel_listings
+
+            self.assertEqual(listing.uri, 'test-code')
 
 
 def suite():
