@@ -108,15 +108,23 @@ class Product:
 
     @classmethod
     def search_displayed_on_eshop(cls, name, clause):
-        Listing = Pool().get('product.product.channel_listing')
+        pool = Pool()
+        Listing = pool.get('product.product.channel_listing')
+        Channel = pool.get('sale.channel')
+        listing = Listing.__table__()
+        channel = Channel.__table__()
+        table = cls.__table__()
 
-        listings = Listing.search([
-            ('channel.source', '=', 'webshop'),
-            ('state', '=', 'active'),
-            ('channel', '=', Transaction().context.get('current_channel')),
-        ])
-
-        return [('id', 'in', map(lambda l: l.product.id, listings))]
+        current_channel = Transaction().context.get('current_channel')
+        sql = table.join(listing,
+            condition=(table.id == listing.product)
+            ).join(channel,
+                condition=(channel.id == listing.channel)
+            ).select(table.id, where=
+                (channel.source == 'webshop') &
+                (listing.state == 'active') &
+                (listing.channel == current_channel))
+        return [('id', 'in', sql)]
 
     @classmethod
     def get_uri(cls, products, name):
@@ -134,15 +142,24 @@ class Product:
 
     @classmethod
     def search_uri(cls, name, clause):
-        Listing = Pool().get('product.product.channel_listing')
+        pool = Pool()
+        Listing = pool.get('product.product.channel_listing')
+        Channel = pool.get('sale.channel')
+        listing = Listing.__table__()
+        channel = Channel.__table__()
+        table = cls.__table__()
 
-        listings = Listing.search([
-            ('channel.source', '=', 'webshop'),
-            ('channel', '=', Transaction().context.get('current_channel')),
-            ('uri', ) + tuple(clause[1:])
-        ])
-
-        return [('id', 'in', map(lambda l: l.product.id, listings))]
+        current_channel = Transaction().context.get('current_channel')
+        sql = table.join(listing,
+            condition=(table.id == listing.product)
+            ).join(channel,
+                condition=(channel.id == listing.channel)
+            ).select(table.id, where=
+                (channel.source == 'webshop') &
+                (listing.state == 'active') &
+                (listing.channel == current_channel) &
+                (listing.uri == clause[2]))
+        return [('id', 'in', sql)]
 
     @classmethod
     def validate(cls, records):
