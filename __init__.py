@@ -16,6 +16,7 @@ from sale import Sale, SaleLine
 from cart import Cart
 from website import Website
 from channel import SaleChannel
+from tree import Node
 
 
 def register():
@@ -25,6 +26,7 @@ def register():
         SaleChannel,
         SaleLine,
         Cart,
+        Node,
         Website,
         AddProductListingStart,
         ProductChannelListing,
