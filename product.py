@@ -87,7 +87,8 @@ class Product:
         )
 
         cls.uri = fields.Function(
-            fields.Char('URI'), 'get_uri', searcher='search_uri'
+            fields.Char('URI'), 'get_uri', searcher='search_uri',
+            setter='set_uri'
         )
 
     @classmethod
@@ -139,6 +140,27 @@ class Product:
         for listing in listings:
             res[listing.product.id] = listing.uri
         return res
+
+    @classmethod
+    def set_uri(cls, products, name, value):
+        Listing = Pool().get('product.product.channel_listing')
+
+        if value:
+            current_channel = Transaction().context.get('current_channel')
+            for product in products:
+                listings = Listing.search([
+                    ('channel.source', '=', 'webshop'),
+                    ('channel', '=', current_channel),
+                    ('product', '=', product.id)
+                ])
+                if listings:
+                    listing = listings[0]
+                    listing.write('uri', value)
+                else:
+                    listing = product.listings.new()
+                    listing.channel = current_channel
+                    listing.uri = value
+                    listing.save()
 
     @classmethod
     def search_uri(cls, name, clause):
