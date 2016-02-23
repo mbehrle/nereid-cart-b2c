@@ -419,6 +419,21 @@ class ProductChannelListing:
         if self.channel and self.channel.source == 'webshop' and self.product:
             return slugify(self.product.code)
 
+    @classmethod
+    def copy(cls, listings, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+
+        duplicate_listings = []
+        for index, listing in enumerate(listings, start=1):
+            if listing.channel.source == 'webshop' and listing.uri:
+                default['uri'] = "%s-copy-%d" % (listing.uri, index)
+            duplicate_listings.extend(
+                super(ProductChannelListing, cls).copy([listing], default)
+            )
+        return duplicate_listings
+
 
 class AddProductListingStart:
     __name__ = 'product.listing.add.start'
