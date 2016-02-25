@@ -155,12 +155,11 @@ class Product:
                 ])
                 if listings:
                     listing = listings[0]
-                    listing.write('uri', value)
                 else:
                     listing = product.listings.new()
                     listing.channel = current_channel
-                    listing.uri = value
-                    listing.save()
+                listing.uri = value
+                listing.save()
 
     @classmethod
     def search_uri(cls, name, clause):
