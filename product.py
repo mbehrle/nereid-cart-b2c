@@ -258,16 +258,16 @@ class Product:
         the message to show.
         """
         if self.can_buy_from_eshop():
-            status, message = 'in_stock', str(_('In stock'))
+            status, message = 'in_stock', unicode(_('In stock'))
         else:
-            status, message = 'out_of_stock', str(_('Out of stock'))
+            status, message = 'out_of_stock', unicode(_('Out of stock'))
 
         quantity = int(self.get_availability().get('quantity'))
 
         if status == 'in_stock' and self.display_available_quantity and \
                 quantity <= self.start_displaying_available_quantity:
             message = '%s %s %s' % (quantity, self.default_uom.name,
-                                    str(_('left')))
+                                    unicode(_('left')))
 
         return status, message
 
