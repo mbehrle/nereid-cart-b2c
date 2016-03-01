@@ -80,11 +80,11 @@ msgstr "Rückstand"
 
 msgctxt "field:product.product,min_warehouse_quantity:"
 msgid "Min Warehouse Quantity"
-msgstr "Minimalanzahl Warenlager"
+msgstr "Minimalbestand für Bestellung"
 
 msgctxt "field:product.product,start_displaying_available_quantity:"
 msgid "Start Quantity"
-msgstr "Anzeigen ab Anzahl"
+msgstr "Anzeigen unter verfügbarem Bestand von"
 
 msgctxt "field:product.product,start_displaying_qty_digits:"
 msgid "Start Quantity Digits"
@@ -108,13 +108,13 @@ msgstr "Website"
 
 msgctxt "help:product.product,min_warehouse_quantity:"
 msgid "Minimum quantity required in warehouse for orders"
-msgstr "Minimaler Lagerbestand, der eine Bestellung auslöst"
+msgstr "Minimaler Lagerbestand, ab dem eine Bestellung möglich ist"
 
 msgctxt "help:product.product,start_displaying_available_quantity:"
 msgid "Product's available quantity must be less than this to show on website"
 msgstr ""
-"Der verfügbare Lagerbestand muss unter dieser Anzahl liegen, um im Web "
-"angezeigt zu werden"
+"Der verfügbare Lagerbestand wird im Web angezeigt, wenn diese Anzahl "
+"unterschritten wird"
 
 msgctxt "model:ir.action,name:"
 msgid "Cart Sales"
