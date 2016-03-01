@@ -262,7 +262,7 @@ class Product:
         else:
             status, message = 'out_of_stock', str(_('Out of stock'))
 
-        quantity = self.get_availability().get('quantity')
+        quantity = int(self.get_availability().get('quantity'))
 
         if status == 'in_stock' and self.display_available_quantity and \
                 quantity <= self.start_displaying_available_quantity:
