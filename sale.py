@@ -14,6 +14,7 @@ from decimal import Decimal
 from trytond.pool import Pool, PoolMeta
 from trytond.model import fields
 from trytond.transaction import Transaction
+from trytond.pyson import Eval
 from nereid import current_user, url_for, request, redirect, flash, abort
 from nereid.contrib.locale import make_lazy_gettext
 from nereid.ctx import has_request_context
@@ -162,6 +163,15 @@ class Sale:
 
 class SaleLine:
     __name__ = 'sale.line'
+
+    @classmethod
+    def __setup__(cls):
+        super(SaleLine, cls).__setup__()
+
+        # XXX Following line doesn't work, because _parent_sale is not
+        # available right here (#2749)(Framework bug)?
+        cls.product.context['current_channel'] = Eval('_parent_sale',
+            {}).get('channel')
 
     def refresh_taxes(self):
         "Refresh taxes of sale line"

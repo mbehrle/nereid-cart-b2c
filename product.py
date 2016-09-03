@@ -134,7 +134,11 @@ class Product:
         res = {product.id: None for product in products}
         listings = Listing.search([
             ('channel.source', '=', 'webshop'),
-            ('channel', '=', Transaction().context.get('current_channel')),
+            # XXX Hack for current_channel missing in context (#2749), when
+            # called from cart/sale_line.jinja
+            # Uncomment as soon as there are more than 1 channel of source
+            # webshop!
+            #('channel', '=', Transaction().context.get('current_channel')),
             ('product', 'in', res.keys())
         ])
         for listing in listings:
