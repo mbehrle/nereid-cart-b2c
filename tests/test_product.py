@@ -15,7 +15,8 @@ from dateutil.relativedelta import relativedelta
 
 import pycountry
 import trytond.tests.test_tryton
-from trytond.tests.test_tryton import POOL, USER, DB_NAME, CONTEXT
+from trytond.tests.test_tryton import POOL, ModuleTestCase, with_transaction, \
+    USER
 from nereid.testing import NereidTestCase
 from werkzeug.datastructures import Headers
 from trytond.transaction import Transaction
@@ -28,6 +29,7 @@ class BaseTestCase(NereidTestCase):
     """
     Test the sale_price method of Product
     """
+
     def setUp(self):
         trytond.tests.test_tryton.install_module('nereid_cart_b2c')
 
@@ -138,9 +140,10 @@ class BaseTestCase(NereidTestCase):
         account_create_chart = POOL.get(
             'account.create_chart', type="wizard")
 
-        account_template, = AccountTemplate.search(
-            [('parent', '=', None)]
-        )
+        account_template, = AccountTemplate.search([
+            ('parent', '=', None),
+            ('name', '=', 'Minimal Account Chart')
+        ])
 
         session_id, _, _ = account_create_chart.create()
         create_chart = account_create_chart(session_id)
@@ -264,7 +267,7 @@ class BaseTestCase(NereidTestCase):
         Creates the static file for testing
         """
         folder, = self.StaticFolder.create([{
-            'folder_name': folder_name,
+            'name': folder_name,
             'description': 'Test Folder'
         }])
 
@@ -298,7 +301,9 @@ class BaseTestCase(NereidTestCase):
             }
         )
 
-        CONTEXT.update(self.User.get_preferences(context_only=True))
+        Transaction().context.update(
+            self.User.get_preferences(context_only=True)
+        )
 
         # Create Fiscal Year
         self._create_fiscal_year(company=self.company.id)
@@ -328,21 +333,21 @@ class BaseTestCase(NereidTestCase):
         # Create users and assign the pricelists to them
         self.guest_user, = self.NereidUser.create([{
             'party': party1.id,
-            'display_name': 'Guest User',
+            'name': 'Guest User',
             'email': 'guest@openlabs.co.in',
             'password': 'password',
             'company': self.company.id,
         }])
         self.registered_user, = self.NereidUser.create([{
             'party': party2.id,
-            'display_name': 'Registered User',
+            'name': 'Registered User',
             'email': 'email@example.com',
             'password': 'password',
             'company': self.company.id,
         }])
         self.registered_user2, = self.NereidUser.create([{
             'party': party3.id,
-            'display_name': 'Registered User 2',
+            'name': 'Registered User 2',
             'email': 'email2@example.com',
             'password': 'password2',
             'company': self.company.id,
@@ -458,67 +463,69 @@ class BaseTestCase(NereidTestCase):
         return rv
 
 
-class TestProduct(BaseTestCase):
+class TestProduct(BaseTestCase, ModuleTestCase):
     "Test Product"
+    module = "nereid_cart_b2c"
 
+    @with_transaction()
     def test_0010_test_guest_price(self):
         """
         Test the pricelist lookup algorithm
         """
-        with Transaction().start(DB_NAME, USER, CONTEXT):
-            self.setup_defaults()
-            app = self.get_app()
+        self.setup_defaults()
+        app = self.get_app()
 
-            with app.test_client() as c:
-                rv = c.get('/product/product-1')
-                self.assertEqual(
-                    Decimal(rv.data), Decimal('10') * self.guest_pl_margin
-                )
-                rv = c.get('/product/product-2')
-                self.assertEqual(
-                    Decimal(rv.data), Decimal('15') * self.guest_pl_margin
-                )
+        with app.test_client() as c:
+            rv = c.get('/product/product-1')
+            self.assertEqual(
+                Decimal(rv.data), Decimal('10') * self.guest_pl_margin
+            )
+            rv = c.get('/product/product-2')
+            self.assertEqual(
+                Decimal(rv.data), Decimal('15') * self.guest_pl_margin
+            )
 
+    @with_transaction()
     def test_0020_test_partner_price(self):
         """
         Test the pricelist lookup algorithm when a price is defined on party
         """
-        with Transaction().start(DB_NAME, USER, CONTEXT):
-            self.setup_defaults()
-            app = self.get_app()
+        self.setup_defaults()
+        app = self.get_app()
 
-            with app.test_client() as c:
-                # Use the partner
-                self.login(c, 'email@example.com', 'password')
-                rv = c.get('/product/product-1')
-                self.assertEqual(
-                    Decimal(rv.data), Decimal('10') * self.party_pl_margin
-                )
-                rv = c.get('/product/product-2')
-                self.assertEqual(
-                    Decimal(rv.data), Decimal('15') * self.party_pl_margin
-                )
+        with app.test_client() as c:
+            # Use the partner
+            self.login(c, 'email@example.com', 'password')
+            rv = c.get('/product/product-1')
+            self.assertEqual(
+                Decimal(rv.data), Decimal('10') * self.party_pl_margin
+            )
+            rv = c.get('/product/product-2')
+            self.assertEqual(
+                Decimal(rv.data), Decimal('15') * self.party_pl_margin
+            )
 
+    @with_transaction()
     def test_0030_test_guest_price_fallback(self):
         """
         Test the pricelist lookup algorithm if it falls back to guest pricing
         if a price is NOT specified for a partner.
         """
-        with Transaction().start(DB_NAME, USER, CONTEXT):
-            self.setup_defaults()
-            app = self.get_app()
+        self.setup_defaults()
+        app = self.get_app()
 
-            with app.test_client() as c:
-                self.login(c, 'email2@example.com', 'password2')
-                rv = c.get('/product/product-1')
-                self.assertEqual(
-                    Decimal(rv.data), Decimal('10') * self.guest_pl_margin
-                )
-                rv = c.get('/product/product-2')
-                self.assertEqual(
-                    Decimal(rv.data), Decimal('15') * self.guest_pl_margin
-                )
+        with app.test_client() as c:
+            self.login(c, 'email2@example.com', 'password2')
+            rv = c.get('/product/product-1')
+            self.assertEqual(
+                Decimal(rv.data), Decimal('10') * self.guest_pl_margin
+            )
+            rv = c.get('/product/product-2')
+            self.assertEqual(
+                Decimal(rv.data), Decimal('15') * self.guest_pl_margin
+            )
 
+    @with_transaction()
     def test_0040_availability(self):
         """
         Test the availability returned for the products
@@ -527,148 +534,148 @@ class TestProduct(BaseTestCase):
         Website = POOL.get('nereid.website')
         Location = POOL.get('stock.location')
 
-        with Transaction().start(DB_NAME, USER, CONTEXT):
-            self.setup_defaults()
-            app = self.get_app()
+        self.setup_defaults()
+        app = self.get_app()
 
-            with app.test_client() as c:
+        with app.test_client() as c:
+            rv = c.get('/product-availability/product-1')
+            availability = json.loads(rv.data)
+            self.assertEqual(availability['quantity'], 0.00)
+            self.assertEqual(availability['forecast_quantity'], 0.00)
+
+        website, = Website.search([])
+        supplier, = Location.search([('code', '=', 'SUP')])
+        stock1, = StockMove.create([{
+            'product': self.product1.id,
+            'uom': self.template1.sale_uom.id,
+            'quantity': 10,
+            'from_location': supplier,
+            'to_location': website.stock_location.id,
+            'company': website.company.id,
+            'unit_price': Decimal('1'),
+            'currency': website.currencies[0].id,
+            'planned_date': datetime.date.today(),
+            'effective_date': datetime.date.today(),
+            'state': 'draft',
+        }])
+        stock2, = StockMove.create([{
+            'product': self.product1.id,
+            'uom': self.template1.sale_uom.id,
+            'quantity': 10,
+            'from_location': supplier,
+            'to_location': website.stock_location.id,
+            'company': website.company.id,
+            'unit_price': Decimal('1'),
+            'currency': website.currencies[0].id,
+            'planned_date': datetime.date.today() + relativedelta(days=1),
+            'effective_date': datetime.date.today() + relativedelta(days=1),
+            'state': 'draft'
+        }])
+        StockMove.write([stock1], {
+            'state': 'done'
+        })
+
+        locations = Location.search([('type', '=', 'storage')])
+
+        with app.test_client() as c:
+            with Transaction().set_context(
+                    {'locations': map(int, locations)}):
                 rv = c.get('/product-availability/product-1')
                 availability = json.loads(rv.data)
-                self.assertEqual(availability['quantity'], 0.00)
-                self.assertEqual(availability['forecast_quantity'], 0.00)
+                self.assertEqual(availability['forecast_quantity'], 20.00)
+                self.assertEqual(availability['quantity'], 10.00)
 
-            website, = Website.search([])
-            supplier, = Location.search([('code', '=', 'SUP')])
-            stock1, = StockMove.create([{
-                'product': self.product1.id,
-                'uom': self.template1.sale_uom.id,
-                'quantity': 10,
-                'from_location': supplier,
-                'to_location': website.stock_location.id,
-                'company': website.company.id,
-                'unit_price': Decimal('1'),
-                'currency': website.currencies[0].id,
-                'planned_date': datetime.date.today(),
-                'effective_date': datetime.date.today(),
-                'state': 'draft',
-            }])
-            stock2, = StockMove.create([{
-                'product': self.product1.id,
-                'uom': self.template1.sale_uom.id,
-                'quantity': 10,
-                'from_location': supplier,
-                'to_location': website.stock_location.id,
-                'company': website.company.id,
-                'unit_price': Decimal('1'),
-                'currency': website.currencies[0].id,
-                'planned_date': datetime.date.today() + relativedelta(days=1),
-                'effective_date': datetime.date.today() + relativedelta(days=1),
-                'state': 'draft'
-            }])
-            StockMove.write([stock1], {
-                'state': 'done'
-            })
-
-            locations = Location.search([('type', '=', 'storage')])
-
-            with app.test_client() as c:
-                with Transaction().set_context(
-                        {'locations': map(int, locations)}):
-                    rv = c.get('/product-availability/product-1')
-                    availability = json.loads(rv.data)
-                    self.assertEqual(availability['forecast_quantity'], 20.00)
-                    self.assertEqual(availability['quantity'], 10.00)
-
+    @with_transaction()
     def test_0050_product_serialize(self):
         """
         Test serialize() method.
         """
         Media = POOL.get('product.media')
 
-        with Transaction().start(DB_NAME, USER, context=CONTEXT):
-            self.setup_defaults()
-            uom, = self.Uom.search([], limit=1)
-            file1 = self.create_static_file(buffer('test'), 'test')
-            file2 = self.create_static_file(buffer('test-again'), 'test-again')
-            app = self.get_app()
+        self.setup_defaults()
+        uom, = self.Uom.search([], limit=1)
+        file1 = self.create_static_file(buffer('test'), 'test')
+        file2 = self.create_static_file(buffer('test-again'), 'test-again')
+        app = self.get_app()
 
-            product_template, = self.ProductTemplate.create([{
-                'name': 'test template',
-                'type': 'goods',
-                'list_price': Decimal('10'),
-                'cost_price': Decimal('5'),
-                'default_uom': uom.id,
-                'description': 'Description of template',
-                'products': [
-                    ('create', self.ProductTemplate.default_products())
-                ],
-                'salable': True,
-                'sale_uom': uom.id,
-                'account_expense': self._get_account_by_kind('expense').id,
-                'account_revenue': self._get_account_by_kind('revenue').id,
-                'media': [('create', [{
-                    'static_file': file1.id,
-                }])],
-            }])
+        product_template, = self.ProductTemplate.create([{
+            'name': 'test template',
+            'type': 'goods',
+            'list_price': Decimal('10'),
+            'cost_price': Decimal('5'),
+            'default_uom': uom.id,
+            'description': 'Description of template',
+            'products': [
+                ('create', self.ProductTemplate.default_products())
+            ],
+            'salable': True,
+            'sale_uom': uom.id,
+            'account_expense': self._get_account_by_kind('expense').id,
+            'account_revenue': self._get_account_by_kind('revenue').id,
+            'media': [('create', [{
+                'static_file': file1.id,
+            }])],
+        }])
 
-            product, = product_template.products
-            product.displayed_on_eshop = True
-            product.uri = 'uri'
-            product.save()
+        product, = product_template.products
+        product.displayed_on_eshop = True
+        product.uri = 'uri'
+        product.save()
 
-            product_media = Media(**{
-                'static_file': file2.id,
-                'product': product.id,
-            })
-            product_media.save()
+        product_media = Media(**{
+            'static_file': file2.id,
+            'product': product.id,
+        })
+        product_media.save()
 
-            qty = 7
+        qty = 7
 
-            # Without login
-            with app.test_client() as c:
-                c.post(
-                    '/cart/add',
-                    data={
-                        'product': product.id,
-                        'quantity': qty,
-                    }
-                )
-                rv = c.get('/user_status')
-                data = json.loads(rv.data)
+        # Without login
+        with app.test_client() as c:
+            c.post(
+                '/cart/add',
+                data={
+                    'product': product.id,
+                    'quantity': qty,
+                }
+            )
+            rv = c.get('/user_status')
+            data = json.loads(rv.data)
 
-                lines = data['status']['cart']['lines']
+            lines = data['status']['cart']['lines']
 
-                self.assertEquals(lines[0]['product']['id'], product.id)
-                self.assertTrue(lines[0]['product']['image'] is not None)
-                self.assertEquals(
-                    lines[0]['display_name'], product.name
-                )
+            self.assertEquals(lines[0]['product']['id'], product.id)
+            self.assertTrue(lines[0]['product']['image'] is not None)
+            self.assertEquals(
+                lines[0]['display_name'], product.name
+            )
 
-            # With login
-            with app.test_client() as c:
-                self.login(c, 'email@example.com', 'password')
-                c.post(
-                    '/cart/add',
-                    data={
-                        'product': product.id,
-                        'quantity': qty,
-                    }
-                )
-                rv = c.get('/user_status')
-                data = json.loads(rv.data)
+        # With login
+        with app.test_client() as c:
+            self.login(c, 'email@example.com', 'password')
+            c.post(
+                '/cart/add',
+                data={
+                    'product': product.id,
+                    'quantity': qty,
+                }
+            )
+            rv = c.get('/user_status')
+            data = json.loads(rv.data)
 
-                lines = data['status']['cart']['lines']
+            lines = data['status']['cart']['lines']
 
-                self.assertEquals(lines[0]['product']['id'], product.id)
-                self.assertTrue(lines[0]['product']['image'] is not None)
-                self.assertEqual(
-                    lines[0]['url'],
-                    product.get_absolute_url(_external=True)
-                )
-                self.assertEquals(
-                    lines[0]['display_name'], product.name
-                )
+            self.assertEquals(lines[0]['product']['id'], product.id)
+            self.assertTrue(lines[0]['product']['image'] is not None)
+            self.assertEqual(
+                lines[0]['url'],
+                product.get_absolute_url(_external=True)
+            )
+            self.assertEquals(
+                lines[0]['display_name'], product.name
+            )
 
+    @with_transaction()
     def test_0060_warehouse_quantity(self):
         """
         Test that product sale is affected by availability and warehouse
@@ -679,71 +686,70 @@ class TestProduct(BaseTestCase):
         Location = POOL.get('stock.location')
         SaleLine = POOL.get('sale.line')
 
-        with Transaction().start(DB_NAME, USER, CONTEXT):
-            self.setup_defaults()
-            app = self.get_app()
+        self.setup_defaults()
+        app = self.get_app()
 
-            website, = Website.search([])
-            supplier, = Location.search([('code', '=', 'SUP')])
-            stock1, = StockMove.create([{
-                'product': self.product1.id,
-                'uom': self.template1.sale_uom.id,
-                'quantity': 10,
-                'from_location': supplier,
-                'to_location': website.stock_location.id,
-                'company': website.company.id,
-                'unit_price': Decimal('1'),
-                'currency': website.currencies[0].id,
-                'planned_date': datetime.date.today(),
-                'effective_date': datetime.date.today(),
-                'state': 'draft',
-            }])
-            StockMove.write([stock1], {
-                'state': 'done'
-            })
+        website, = Website.search([])
+        supplier, = Location.search([('code', '=', 'SUP')])
+        stock1, = StockMove.create([{
+            'product': self.product1.id,
+            'uom': self.template1.sale_uom.id,
+            'quantity': 10,
+            'from_location': supplier,
+            'to_location': website.stock_location.id,
+            'company': website.company.id,
+            'unit_price': Decimal('1'),
+            'currency': website.currencies[0].id,
+            'planned_date': datetime.date.today(),
+            'effective_date': datetime.date.today(),
+            'state': 'draft',
+        }])
+        StockMove.write([stock1], {
+            'state': 'done'
+        })
 
-            headers = Headers([('Referer', '/')])
+        headers = Headers([('Referer', '/')])
 
-            self.assertEqual(self.product1.is_backorder, True)
+        self.assertEqual(self.product1.is_backorder, True)
 
-            # Set product warehouse quantity
-            self.product1.min_warehouse_quantity = 11
-            self.product1.save()
+        # Set product warehouse quantity
+        self.product1.min_warehouse_quantity = 11
+        self.product1.save()
 
-            self.assertEqual(self.product1.is_backorder, False)
+        self.assertEqual(self.product1.is_backorder, False)
 
-            with app.test_client() as c:
-                self.login(c, 'email@example.com', 'password')
+        with app.test_client() as c:
+            self.login(c, 'email@example.com', 'password')
 
-                rv = c.post(
-                    '/cart/add',
-                    data={
-                        'product': self.product1.id, 'quantity': 5
-                    },
-                    headers=headers
-                )
-                # Cannot add to cart, available quantity < warehouse quantity
-                self.assertTrue(rv.location.endswith('/'))
-                self.assertEqual(rv.status_code, 302)
-                self.assertEqual(SaleLine.search([], count=True), 0)
+            rv = c.post(
+                '/cart/add',
+                data={
+                    'product': self.product1.id, 'quantity': 5
+                },
+                headers=headers
+            )
+            # Cannot add to cart, available quantity < warehouse quantity
+            self.assertTrue(rv.location.endswith('/'))
+            self.assertEqual(rv.status_code, 302)
+            self.assertEqual(SaleLine.search([], count=True), 0)
 
-            # Try a service product
-            self.product1.template.type = 'service'
-            self.product1.template.save()
+        # Try a service product
+        self.product1.template.type = 'service'
+        self.product1.template.save()
 
-            with app.test_client() as c:
-                self.login(c, 'email@example.com', 'password')
+        with app.test_client() as c:
+            self.login(c, 'email@example.com', 'password')
 
-                rv = c.post(
-                    '/cart/add',
-                    data={
-                        'product': self.product1.id, 'quantity': 5
-                    },
-                )
-                # Add to cart proceeds normally
-                self.assertTrue(rv.location.endswith('/cart'))
-                self.assertEqual(rv.status_code, 302)
-                self.assertEqual(SaleLine.search([], count=True), 1)
+            rv = c.post(
+                '/cart/add',
+                data={
+                    'product': self.product1.id, 'quantity': 5
+                },
+            )
+            # Add to cart proceeds normally
+            self.assertTrue(rv.location.endswith('/cart'))
+            self.assertEqual(rv.status_code, 302)
+            self.assertEqual(SaleLine.search([], count=True), 1)
 
 
 def suite():

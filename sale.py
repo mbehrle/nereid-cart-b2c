@@ -14,7 +14,8 @@ from decimal import Decimal
 from trytond.pool import Pool, PoolMeta
 from trytond.model import fields
 from trytond.transaction import Transaction
-from nereid import current_user, url_for, request, redirect, flash, abort
+from nereid import current_user, url_for, request, redirect, flash, abort, \
+    current_locale
 from nereid.contrib.locale import make_lazy_gettext
 from nereid.ctx import has_request_context
 _ = make_lazy_gettext('nereid_cart_b2c')
@@ -64,7 +65,7 @@ class Sale:
 
         # If control reaches here, then this is a nereid request. Lets try
         # and personalise the pricelist of the user logged in.
-        if current_user.is_anonymous():
+        if current_user.is_anonymous:
             # Sorry anonymous users, you get the shop price
             return channel_price_list
 
@@ -106,43 +107,34 @@ class Sale:
         order_line = self.find_existing_line(product_id)
         product = Product(product_id)
 
-        values = {
-            'product': product_id,
-            '_parent_sale.currency': self.currency.id,
-            '_parent_sale.party': self.party.id,
-            '_parent_sale.price_list': (
-                self.price_list.id if self.price_list else None
-            ),
-            'type': 'line',
-        }
-
         old_price = Decimal('0.0')
         if order_line:
             old_price = order_line.unit_price
-            values.update({
-                'unit': order_line.unit.id,
-                'quantity': quantity if action == 'set'
-                    else quantity + order_line.quantity,
-            })
+            order_line.unit = order_line.unit.id
+            order_line.quantity = \
+                quantity if action == 'set' else quantity + order_line.quantity
         else:
-            order_line = SaleLine()
-            values.update({
+            order_line = SaleLine(**{
+                'product': product_id,
+                'sale': self,
+                'type': 'line',
                 'sale': self.id,
                 'sequence': 10,
                 'quantity': quantity,
                 'unit': None,
                 'description': None,
+                'warehouse': self.warehouse
             })
-            values.update(SaleLine(**values).on_change_product())
+            order_line.on_change_product()
 
-        values.update(SaleLine(**values).on_change_quantity())
+        order_line.on_change_quantity()
 
-        if old_price and old_price != values['unit_price']:
+        if old_price and old_price != order_line.unit_price:
             vals = (
                 product.name, self.currency.symbol, old_price,
-                self.currency.symbol, values['unit_price']
+                self.currency.symbol, order_line.unit_price
             )
-            if old_price < values['unit_price']:
+            if old_price < order_line.unit_price:
                 message = _(
                     "The unit price of product %s increased from %s%d to "
                     "%s%d." % vals
@@ -154,9 +146,6 @@ class Sale:
                 )
             flash(message)
 
-        for key, value in values.iteritems():
-            if '.' not in key:
-                setattr(order_line, key, value)
         return order_line
 
 
@@ -167,10 +156,9 @@ class SaleLine:
         "Refresh taxes of sale line"
         SaleLine = Pool().get('sale.line')
 
-        values = SaleLine(self.id).on_change_product()
-        if 'taxes' in values:
-            self.taxes = values['taxes']
-            self.save()
+        updated_sale = SaleLine(self.id).on_change_product()
+        self.taxes = updated_sale.taxes
+        self.save()
 
     def serialize(self, purpose=None):
         """
@@ -180,10 +168,10 @@ class SaleLine:
         if purpose == 'cart':
             currency_format = partial(
                 numbers.format_currency, currency=self.sale.currency.code,
-                locale=request.nereid_language.code
+                locale=current_locale.language.code
             )
             number_format = partial(
-                numbers.format_number, locale=request.nereid_language.code
+                numbers.format_number, locale=current_locale.language.code
             )
             res.update({
                 'id': self.id,

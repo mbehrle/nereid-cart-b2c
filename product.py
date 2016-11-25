@@ -13,8 +13,10 @@ from dateutil.relativedelta import relativedelta
 from trytond.transaction import Transaction
 from trytond.pool import PoolMeta, Pool
 from trytond.model import fields
-from trytond.pyson import Bool, Eval
-from nereid import request, cache, jsonify, abort, current_user, route
+from trytond.pyson import Bool, Eval, Not
+from trytond import backend
+from nereid import cache, jsonify, abort, current_user, route, \
+    current_locale, current_website
 from nereid.helpers import key_from_list
 from nereid.contrib.locale import make_lazy_gettext
 
@@ -51,8 +53,8 @@ class Product:
         )
     )
 
-    min_warehouse_quantity = fields.Numeric(
-        'Min Warehouse Quantity', digits=(16, 4),
+    min_warehouse_quantity = fields.Float(
+        'Min Warehouse Quantity',
         help="Minimum quantity required in warehouse for orders"
     )
     is_backorder = fields.Function(
@@ -66,6 +68,16 @@ class Product:
         return False
 
     @classmethod
+    def __register__(cls, module_name):
+        TableHandler = backend.get('TableHandler')
+
+        # Change 'min_warehouse_quantity' type to Float
+        table = TableHandler(cls, module_name)
+        super(Product, cls).__register__(module_name)
+
+        table.alter_type('min_warehouse_quantity', 'float')
+
+    @classmethod
     def __setup__(cls):
         super(Product, cls).__setup__()
 
@@ -74,6 +86,16 @@ class Product:
                 'This quantity should be always be positive'
             ),
         })
+
+    @classmethod
+    def view_attributes(cls):
+        return super(Product, cls).view_attributes() + [
+            (
+                '//page[@id="customers"]', 'states', {
+                    'invisible': Not(Bool(Eval('displayed_on_eshop')))
+                }
+            )
+        ]
 
     @classmethod
     def validate(cls, records):
@@ -100,14 +122,14 @@ class Product:
         By default, min_warehouse_quantity is minus one. This is to handle the
         normal sale order workflow.
         """
-        return -1
+        return -1.0
 
     @fields.depends('_parent_template')
     def on_change_with_start_displaying_qty_digits(self, name=None):
         """
         Getter for start_displaying_qty_digits
         """
-        return self.template.default_uom.digits or 2
+        return self.default_uom.digits or 2
 
     def can_buy_from_eshop(self):
         """
@@ -159,9 +181,11 @@ class Product:
 
         if status == 'in_stock' and self.display_available_quantity and \
                 quantity <= self.start_displaying_available_quantity:
+            if self.min_warehouse_quantity > 0:
+                quantity = quantity - self.min_warehouse_quantity
+
             message = '%s %s %s' % (quantity, self.default_uom.name,
                                     str(_('left')))
-
         return status, message
 
     def serialize(self, purpose=None):
@@ -173,7 +197,7 @@ class Product:
                 'id': self.id,
                 'code': self.code,
                 'name': self.name,
-                'category': self.category and self.category.name or None,
+                'category': [category.name for category in self.categories],
                 'image': (self.default_image.transform_command().thumbnail(
                     150, 150, 'a'
                 ).url() if self.default_image else None),
@@ -200,18 +224,18 @@ class Product:
 
         price_list = Sale.default_price_list()
 
-        if current_user.is_anonymous():
-            customer = request.nereid_website.guest_user.party
+        if current_user.is_anonymous:
+            customer = current_website.guest_user.party
         else:
             customer = current_user.party
 
         # Build a Cache key to store in cache
         cache_key = key_from_list([
-            Transaction().cursor.dbname,
+            Transaction().database.name,
             Transaction().user,
             customer.id,
             price_list, self.id, quantity,
-            request.nereid_currency.id,
+            current_locale.currency.id,
             'product.product.sale_price',
         ])
         price = cache.get(cache_key)
@@ -220,7 +244,7 @@ class Product:
             with Transaction().set_context(
                 customer=customer.id,
                 price_list=price_list,
-                currency=request.nereid_currency.id
+                currency=current_locale.currency.id
             ):
                 price = self.get_sale_price([self], quantity)[self.id]
 
@@ -244,7 +268,7 @@ class Product:
         :return: A dictionary with `quantity` and `forecast_quantity`
         """
         context = {
-            'locations': [request.nereid_website.stock_location.id],
+            'locations': [current_website.stock_location.id],
             'stock_date_end': date.today() + relativedelta(days=7)
         }
         with Transaction().set_context(**context):

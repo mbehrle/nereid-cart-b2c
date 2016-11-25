@@ -8,15 +8,13 @@
 from functools import partial
 
 from babel import numbers
-from nereid import render_template, login_required, request, current_user, \
-    route
+from nereid import render_template, login_required, current_user, route, \
+    current_locale
 from nereid.contrib.pagination import Pagination
 from nereid.globals import session
-from trytond import backend
 from trytond.model import fields
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval
-from trytond.transaction import Transaction
 
 
 __all__ = ['Website']
@@ -82,20 +80,6 @@ class Website:
     def __setup__(cls):
         super(Website, cls).__setup__()
         cls.per_page = 10
-
-    @classmethod
-    def __register__(cls, module_name):
-        super(Website, cls).__register__(module_name)
-
-        TableHandler = backend.get('TableHandler')
-        cursor = Transaction().cursor
-
-        table = TableHandler(cursor, cls, module_name)
-
-        table.not_null_action('channel', action='remove')
-        table.not_null_action('warehouse', action='remove')
-        table.not_null_action('stock_location', action='remove')
-        table.not_null_action('payment_term', action='remove')
 
     def get_fields_from_channel(self, name):
         """
@@ -238,7 +222,7 @@ class Website:
             # Build locale based formatters
             currency_format = partial(
                 numbers.format_currency, currency=cart.sale.currency.code,
-                locale=request.nereid_language.code
+                locale=current_locale.language.code
             )
 
             rv['cart'] = {
