@@ -4,7 +4,7 @@ msgstr "Content-Type: text/plain; charset=utf-8\n"
 
 msgctxt "error:product.product:"
 msgid "This quantity should be always be positive"
-msgstr "Diese Anzahl sollte immer positiv sein"
+msgstr "Diese Anzahl sollte immer positiv sein."
 
 msgctxt "field:nereid.cart,create_date:"
 msgid "Create Date"
@@ -66,6 +66,10 @@ msgctxt "field:nereid.website,warehouse:"
 msgid "Warehouse"
 msgstr "Warenlager"
 
+msgctxt "field:product.listing.add.start,uri:"
+msgid "URI"
+msgstr "URI"
+
 msgctxt "field:product.product,display_available_quantity:"
 msgid "Display Available Quantity On Website?"
 msgstr "Verfügbare Anzahl im Web anzeigen"
@@ -76,15 +80,19 @@ msgstr "Rückstand"
 
 msgctxt "field:product.product,min_warehouse_quantity:"
 msgid "Min Warehouse Quantity"
-msgstr "Minimalanzahl Warenlager"
+msgstr "Minimalbestand für Bestellung"
 
 msgctxt "field:product.product,start_displaying_available_quantity:"
 msgid "Start Quantity"
-msgstr "Anzeigen ab Anzahl"
+msgstr "Anzeigen unter verfügbarem Bestand von"
 
 msgctxt "field:product.product,start_displaying_qty_digits:"
 msgid "Start Quantity Digits"
 msgstr "Nachkommastellen Anzeigeanzahl"
+
+msgctxt "field:product.product.channel_listing,uri:"
+msgid "URI"
+msgstr "URI"
 
 msgctxt "field:sale.sale,is_cart:"
 msgid "Is Cart Order?"
@@ -92,7 +100,7 @@ msgstr "Warenkorbauftrag"
 
 msgctxt "field:sale.sale,nereid_user:"
 msgid "Nereid User"
-msgstr "Nereid Benutzer"
+msgstr "Websitebenutzer"
 
 msgctxt "field:sale.sale,website:"
 msgid "Website"
@@ -100,13 +108,13 @@ msgstr "Website"
 
 msgctxt "help:product.product,min_warehouse_quantity:"
 msgid "Minimum quantity required in warehouse for orders"
-msgstr "Minimaler Lagerbestand, der eine Bestellung auslöst"
+msgstr "Minimaler Lagerbestand, ab dem eine Bestellung möglich ist"
 
 msgctxt "help:product.product,start_displaying_available_quantity:"
 msgid "Product's available quantity must be less than this to show on website"
 msgstr ""
-"Der verfügbare Lagerbestand muss unter dieser Anzahl liegen, um im Web "
-"angezeigt zu werden"
+"Der verfügbare Lagerbestand wird im Web angezeigt, wenn diese Anzahl "
+"unterschritten wird"
 
 msgctxt "model:ir.action,name:"
 msgid "Cart Sales"
@@ -136,7 +144,7 @@ msgstr ""
 
 msgctxt "nereid:cart.py:346"
 msgid "This product is not for sale"
-msgstr "Dieser Artikel steht nicht zum Verkauf"
+msgstr "Dieser Artikel steht nicht zum Verkauf."
 
 msgctxt "nereid:cart.py:363"
 msgid "The product has been added to your cart"
@@ -145,6 +153,14 @@ msgstr "Der Artikel wurde zu Ihrem Warenkorb hinzugefügt"
 msgctxt "nereid:cart.py:365"
 msgid "Your cart has been updated with the product"
 msgstr "Ihr Warenkorb wurde aktualisiert"
+
+msgctxt "nereid:cart.py:397"
+msgid "Looks like the item is already deleted."
+msgstr "Der Artikel scheint bereits gelöscht worden zu sein."
+
+msgctxt "nereid:cart.py:400"
+msgid "The order item has been successfully removed."
+msgstr "Der Artikel wurde erfolgreich entfernt."
 
 msgctxt "nereid:forms.py:15"
 msgid "This field is required"
@@ -158,29 +174,33 @@ msgctxt "nereid:forms.py:23"
 msgid "Product"
 msgstr "Artikel"
 
-msgctxt "nereid:product.py:154"
+msgctxt "nereid:product.py:240"
 msgid "In stock"
 msgstr "Auf Lager"
 
-msgctxt "nereid:product.py:156"
+msgctxt "nereid:product.py:242"
 msgid "Out of stock"
-msgstr "Nicht vorrätig"
+msgstr "Momentan vergriffen"
 
-msgctxt "nereid:product.py:163"
+msgctxt "nereid:product.py:249"
 msgid "left"
-msgstr "vorrätig"
+msgstr "verfügbar"
 
-msgctxt "nereid:sale.py:175"
+msgctxt "nereid:sale.py:146"
 msgid "The unit price of product %s increased from %s%d to %s%d."
-msgstr "Der Einzelpreis von %s ist von %s%d auf %s%d gestiegen."
+msgstr "Der Einzelpreis von \"%s\" ist von %s%d auf %s%d gestiegen."
 
-msgctxt "nereid:sale.py:180"
+msgctxt "nereid:sale.py:151"
 msgid "The unit price of product %s dropped from %s%d to %s%d."
-msgstr "Der Einzelpreis von %s ist von %s%d auf %s%d gefallen."
+msgstr "Der Einzelpreis von \"%s\" ist von %s%d auf %s%d gefallen."
 
-msgctxt "nereid:sale.py:260"
+msgctxt "nereid:sale.py:231"
 msgid "This product is no longer available"
-msgstr "Dieser Artikel ist nicht mehr erhältlich"
+msgstr "Dieser Artikel ist nicht mehr verfügbar."
+
+msgctxt "selection:sale.channel,source:"
+msgid "Webshop"
+msgstr "Webshop"
 
 msgctxt "view:product.product:"
 msgid "Inventory Details"
