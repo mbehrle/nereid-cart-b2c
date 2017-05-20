@@ -12,7 +12,7 @@ from functools import partial
 
 from nereid import jsonify, render_template, flash, request, login_required, \
     url_for, current_user, route, context_processor, abort, current_website, \
-    current_locale
+    current_locale, Nereid
 from nereid.contrib.locale import make_lazy_gettext
 from nereid.globals import session, current_app
 from flask.ext.login import user_logged_in
@@ -427,6 +427,9 @@ class Cart(ModelSQL, ModelView):
             ensures that the model is in pool
 
         '''
+        if not isinstance(current_app._get_current_object(), Nereid):
+            # This is non nereid environment, just ignore
+            return
         try:
             Cart = Pool().get('nereid.cart')
         except KeyError:
