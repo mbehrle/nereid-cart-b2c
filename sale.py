@@ -116,7 +116,6 @@ class Sale:
         else:
             order_line = SaleLine(**{
                 'product': product_id,
-                'sale': self,
                 'type': 'line',
                 'sale': self.id,
                 'sequence': 10,
