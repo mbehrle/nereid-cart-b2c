@@ -15,7 +15,7 @@ from nereid import jsonify, render_template, flash, request, login_required, \
     current_locale, Nereid
 from nereid.contrib.locale import make_lazy_gettext
 from nereid.globals import session, current_app
-from flask.ext.login import user_logged_in
+from flask_login import user_logged_in
 from werkzeug import redirect
 from babel import numbers
 from nereid.ctx import has_request_context
