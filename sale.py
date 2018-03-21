@@ -129,20 +129,23 @@ class Sale:
         order_line.on_change_quantity()
 
         if old_price and old_price != order_line.unit_price:
-            vals = (
-                product.name, self.currency.symbol, old_price,
-                self.currency.symbol, order_line.unit_price
-            )
+            vals = {
+                'product_name': product.name,
+                'currency': self.currency.code,
+                'old_price': old_price,
+                'new_price': order_line.unit_price,
+                }
+
             if old_price < order_line.unit_price:
                 message = _(
-                    "The unit price of product %s increased from %s%d to "
-                    "%s%d." % vals
-                )
+                    "The unit price of product {product_name} increased from "
+                    "{currency} {old_price:.2f} to {currency} {new_price:.2f}."
+                    ).format(**vals)
             else:
                 message = _(
-                    "The unit price of product %s dropped from %s%d "
-                    "to %s%d." % vals
-                )
+                    "The unit price of product {product_name} dropped from "
+                    "{currency} {old_price:.2f} to {currency} {new_price:.2f}."
+                    ).format(**vals)
             flash(message)
 
         return order_line
