@@ -145,7 +145,12 @@ class Cart(ModelSQL, ModelView):
 
         if self.sale:
             Sale.cancel([self.sale])
-            Sale.delete([self.sale])
+            # A sale with canceled payments can not be deleted, but must
+            # just be left canceled
+            try:
+                Sale.delete([self.sale])
+            except:
+                pass
         if self.id is not None:
             # An unsaved active record ?
             self.__class__.delete([self])
