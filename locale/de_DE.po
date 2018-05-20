@@ -70,6 +70,10 @@ msgctxt "field:nereid.website,warehouse:"
 msgid "Warehouse"
 msgstr "Warenlager"
 
+msgctxt "field:product.listing.add.start,uri:"
+msgid "URI"
+msgstr "URI"
+
 msgctxt "field:product.product,display_available_quantity:"
 msgid "Display Available Quantity On Website?"
 msgstr "Verfügbare Anzahl im Web anzeigen"
@@ -89,6 +93,10 @@ msgstr "Anzeigen unter verfügbarem Bestand von"
 msgctxt "field:product.product,start_displaying_qty_digits:"
 msgid "Start Quantity Digits"
 msgstr "Nachkommastellen Anzeigeanzahl"
+
+msgctxt "field:product.product.channel_listing,uri:"
+msgid "URI"
+msgstr "URI"
 
 msgctxt "field:sale.channel,shipping_carriers:"
 msgid "Shipping Carriers"
@@ -136,11 +144,23 @@ msgctxt "nereid:cart.py:161"
 msgid "Your shopping cart has been cleared"
 msgstr "Ihr Warenkorb wurde geleert"
 
+msgctxt "nereid:cart.py:166"
+msgid "Your shopping cart has been cleared"
+msgstr "Ihr Warenkorb wurde geleert"
+
 msgctxt "nereid:cart.py:342"
 msgid "Be sensible! You can only add real quantities to cart"
 msgstr "Mengenüberschreitung: Die hinzugefügte Menge scheint nicht sinnvoll."
 
+msgctxt "nereid:cart.py:347"
+msgid "Be sensible! You can only add real quantities to cart"
+msgstr "Mengenüberschreitung: Die hinzugefügte Menge scheint nicht sinnvoll."
+
 msgctxt "nereid:cart.py:350"
+msgid "This product is not for sale"
+msgstr "Dieser Artikel steht nicht zum Verkauf."
+
+msgctxt "nereid:cart.py:355"
 msgid "This product is not for sale"
 msgstr "Dieser Artikel steht nicht zum Verkauf."
 
@@ -152,11 +172,27 @@ msgctxt "nereid:cart.py:369"
 msgid "Your cart has been updated with the product"
 msgstr "Ihr Warenkorb wurde aktualisiert"
 
+msgctxt "nereid:cart.py:372"
+msgid "The product has been added to your cart"
+msgstr "Der Artikel wurde in Ihren Warenkorb gelegt"
+
+msgctxt "nereid:cart.py:374"
+msgid "Your cart has been updated with the product"
+msgstr "Ihr Warenkorb wurde aktualisiert"
+
 msgctxt "nereid:cart.py:401"
 msgid "Looks like the item is already deleted."
 msgstr "Der Artikel scheint bereits entfernt worden zu sein"
 
 msgctxt "nereid:cart.py:404"
+msgid "The order item has been successfully removed."
+msgstr "Der Artikel wurde erfolgreich entfernt."
+
+msgctxt "nereid:cart.py:406"
+msgid "Looks like the item is already deleted."
+msgstr "Der Artikel scheint bereits entfernt worden zu sein"
+
+msgctxt "nereid:cart.py:409"
 msgid "The order item has been successfully removed."
 msgstr "Der Artikel wurde erfolgreich entfernt."
 
@@ -184,6 +220,14 @@ msgctxt "nereid:product.py:188"
 msgid "left"
 msgstr "verfügbar"
 
+msgctxt "nereid:sale.py:140"
+msgid ""
+"The unit price of product {product_name} increased from {currency} "
+"{old_price:.2f} to {currency} {new_price:.2f}."
+msgstr ""
+"Der Einzelpreis von {product_name} ist von {old_price:.2f} {currency} auf "
+"{new_price:.2f} {currency} gestiegen."
+
 msgctxt "nereid:sale.py:143"
 msgid ""
 "The unit price of product {product_name} increased from {currency} "
@@ -191,6 +235,14 @@ msgid ""
 msgstr ""
 "Der Einzelpreis von {product_name} ist von {old_price:.2f} {currency} auf "
 "{new_price:.2f} {currency} gestiegen."
+
+msgctxt "nereid:sale.py:145"
+msgid ""
+"The unit price of product {product_name} dropped from {currency} "
+"{old_price:.2f} to {currency} {new_price:.2f}."
+msgstr ""
+"Der Einzelpreis von {product_name} ist von {old_price:.2f} {currency} auf "
+"{new_price:.2f} {currency} gefallen."
 
 msgctxt "nereid:sale.py:148"
 msgid ""
