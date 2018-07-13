@@ -25,6 +25,7 @@ from trytond.model import ModelSQL, ModelView, fields
 from trytond.pool import Pool, PoolMeta
 
 from .forms import AddtoCartForm
+from .signals import cart_updated
 _ = make_lazy_gettext('nereid_cart_b2c')
 
 __all__ = ['Cart']
@@ -362,11 +363,13 @@ class Cart(ModelSQL, ModelView):
             sale_line.validate_for_product_inventory()
 
             sale_line.save()
+            cart_updated.send(cart)
 
             if action == 'add':
                 message = _('The product has been added to your cart')
             else:
                 message = _('Your cart has been updated with the product')
+
             if request.is_xhr:
                 return jsonify(
                     message=unicode(message),
@@ -402,6 +405,7 @@ class Cart(ModelSQL, ModelView):
         else:
             SaleLine.delete([sale_line])
             message = 'The order item has been successfully removed.'
+            cart_updated.send(cart)
 
         flash(_(message))
 
