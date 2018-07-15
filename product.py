@@ -14,7 +14,6 @@ from trytond.transaction import Transaction
 from trytond.pool import PoolMeta, Pool
 from trytond.model import fields
 from trytond.pyson import Bool, Eval, Not
-from trytond import backend
 from nereid import cache, jsonify, abort, current_user, route, \
     current_locale, current_website
 from nereid.helpers import key_from_list
@@ -66,16 +65,6 @@ class Product:
                 self.min_warehouse_quantity < 0:
             return True
         return False
-
-    @classmethod
-    def __register__(cls, module_name):
-        TableHandler = backend.get('TableHandler')
-
-        # Change 'min_warehouse_quantity' type to Float
-        table = TableHandler(cls, module_name)
-        super(Product, cls).__register__(module_name)
-
-        table.alter_type('min_warehouse_quantity', 'float')
 
     @classmethod
     def __setup__(cls):
