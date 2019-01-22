@@ -308,7 +308,12 @@ class Cart(ModelSQL, ModelView):
         if party is None:
             party = user.party
 
-        sale_values = {
+        sale_values = self.get_draft_sale_values(user, party)
+        self.sale = Sale.create([sale_values])[0]
+        self.save()
+
+    def get_draft_sale_values(self, user, party):
+        return {
             'party': party.id,
             'currency': current_locale.currency.id,
             'company': current_website.company.id,
@@ -318,9 +323,7 @@ class Cart(ModelSQL, ModelView):
             'nereid_user': user.id,
             'warehouse': current_website.warehouse.id,
             'payment_term': current_website.payment_term.id,
-        }
-        self.sale = Sale.create([sale_values])[0]
-        self.save()
+            }
 
     @classmethod
     @route('/cart/add', methods=['POST'])
