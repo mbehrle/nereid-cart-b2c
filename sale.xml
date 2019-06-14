@@ -7,7 +7,7 @@
         <record model="ir.action.act_window.domain" id="act_sale_form_domain_cart">
             <field name="name">Cart</field>
             <field name="sequence" eval="10"/>
-            <field name="domain" eval="[('state','in',['draft', 'quotation']),('is_cart', '=', True)]" pyson="1"/>
+            <field name="domain" eval="[('state','=', 'draft'),('is_cart', '=', True)]" pyson="1"/>
             <field name="act_window" ref="sale.act_sale_form"/>
         </record>
     </data>
