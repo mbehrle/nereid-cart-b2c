@@ -120,12 +120,13 @@ class Product:
         """
         return self.default_uom.digits or 2
 
-    def can_buy_from_eshop(self):
+    def can_buy_from_eshop(self, quantity=None):
         """
         This function is used for inventory checking purpose. It returns a
         boolean result on the basis of fields such as min_warehouse_quantity.
         """
-        quantity = self.get_availability().get('quantity')
+        if quantity is None:
+            quantity = self.get_availability().get('quantity')
 
         if self.type != 'goods':
             # If product type is not goods, then inventory need not be checked
@@ -161,13 +162,14 @@ class Product:
         such as color scheming in template. The second element of the tuple is
         the message to show.
         """
-        if self.can_buy_from_eshop():
+        quantity = self.get_availability().get('quantity')
+
+        if self.can_buy_from_eshop(quantity=quantity):
             status, message = 'in_stock', unicode(_('In stock'))
         else:
             status, message = 'out_of_stock', unicode(_('Out of stock'))
 
-        quantity = int(self.get_availability().get('quantity'))
-
+        quantity = int(quantity)
         if status == 'in_stock' and self.display_available_quantity and \
                 quantity <= self.start_displaying_available_quantity:
             if self.min_warehouse_quantity > 0:
